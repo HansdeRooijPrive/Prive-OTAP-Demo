@@ -1,0 +1,6 @@
+# Forceer LF zodat de Python-build op Windows én Linux identiek is.
+index.html text eol=lf
+build.py    text eol=lf
+app.json    text eol=lf
+src/**      text eol=lf
+tests/**    text eol=lf

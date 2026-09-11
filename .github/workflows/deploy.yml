@@ -1,0 +1,19 @@
+name: Deploy (OTAP)
+
+on:
+  push:
+    branches: [main, acceptatie, development]
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  otap:
+    uses: HansdeRooijPrive/otap-ci/.github/workflows/deploy.yml@v1

@@ -1,0 +1,10 @@
+{
+  "name": "Privé Demo",
+  "short_name": "Demo",
+  "storage_key": "prive-demo",
+  "theme": {
+    "prod": { "merk": "#2563eb", "merk_donker": "#1e40af", "merk_licht": "#3b82f6" },
+    "acc":  { "merk": "#b45309", "merk_donker": "#92400e", "merk_licht": "#d97706" },
+    "test": { "merk": "#0f7a45", "merk_donker": "#0b5c34", "merk_licht": "#1a9d5c" }
+  }
+}
