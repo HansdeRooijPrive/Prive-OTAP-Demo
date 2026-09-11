@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>{{APP_NAME}}</title>
 <meta name="theme-color" content="{{MERK}}">
 <meta name="mobile-web-app-capable" content="yes">
@@ -12,16 +13,32 @@
 <style>{{STYLES}}</style>
 </head>
 <body>
-<main>
-  <h1>{{APP_NAME}} <span id="env-badge"></span></h1>
-  <p class="muted">Demo-app op het OTAP-platform. Deze pagina bewijst de keten:
-    build uit <code>src/</code>, thema en opslag per omgeving, en deploy naar GitHub Pages.</p>
-  <div class="kaart">
-    <button id="tik">Tik mij</button>
-    <p>Aantal tikken (bewaard per omgeving): <b id="teller">0</b></p>
-    <p class="muted klein">Opslagsleutel: <code id="sleutel"></code></p>
-  </div>
-</main>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>OTAP-straat <span id="env-badge" title="Deze app draait zelf op deze omgeving"></span></h1>
+      <p>Van eerste build tot productie, met alle poorten ertussen. <span class="demo-tag">Demo · gesimuleerd</span></p>
+    </div>
+    <div class="controls" id="controls"></div>
+  </header>
+  <div class="summary" id="summary"></div>
+  <section class="lanes" id="lanes" aria-label="Omgevingen"></section>
+  <section class="lower">
+    <div class="panel">
+      <div class="panel-hd"><h2>Releases</h2><span>Klik een release voor de wijzigingen</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Versie</th><th>Commit</th><th>Branch</th><th>Gebouwd</th><th>Doorlopen</th></tr></thead>
+        <tbody id="rels"></tbody>
+      </table></div>
+      <div class="detail" id="detail"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><h2>Logboek</h2><span id="logcount"></span></div>
+      <ul class="log" id="log"></ul>
+    </div>
+  </section>
+  <footer class="voet">{{APP_NAME}} · opslag per omgeving: <code id="sleutel"></code></footer>
+</div>
 <script>{{SCRIPT}}</script>
 </body>
 </html>

@@ -5,6 +5,13 @@ Demo-app (privé) op het OTAP-platform, gegenereerd uit
 De CI/CD komt uit [`otap-ci`](https://github.com/HansdeRooijPrive/otap-ci).
 Doel: de volledige O → T → A → P-keten live laten zien.
 
+De app zelf is de **OTAP-straat**: een gesimuleerde releasestraat waarin je
+releases van Ontwikkeling via Test en Acceptatie naar Productie promoveert.
+Elke poort heeft eigen criteria (tests, regressietest, gebruikersacceptatie,
+change-goedkeuring met vier-ogenprincipe, wijzigingsvenster, release freeze);
+productie rolt blue-green uit en kan worden teruggedraaid. Alle gegevens zijn
+fictief en worden per omgeving apart in `localStorage` bewaard.
+
 ## OTAP
 | Branch | Omgeving | URL |
 |--------|----------|-----|

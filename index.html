@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
 <title>OTAP Platform Demo</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="mobile-web-app-capable" content="yes">
@@ -10,33 +11,197 @@
 <meta name="apple-mobile-web-app-title" content="OTAP Demo">
 <link rel="manifest" href='data:application/manifest+json,{"name":"OTAP%20Platform%20Demo","short_name":"OTAP Demo","display":"standalone","start_url":"."}'>
 <style>:root { --merk: #2563eb; --merk-donker: #1e40af; --merk-licht: #3b82f6; }
+:root {
+  --bg: #EBEFF3; --surface: #FFFFFF; --surface-2: #F4F6F9; --ink: #13202C; --ink-2: #435263; --ink-3: #6B7887;
+  --line: #D0D8E0; --line-2: #E2E7EC;
+  --o: #4859BD; --t: #9A660E; --a: #12766F; --p: #872A69;
+  --ok: #21804A; --warn: #A96400; --bad: #BA372B;
+  --btn: #13202C; --btn-ink: #FFFFFF; --prod-ink: #FFFFFF; --focus: #4859BD;
+  --shadow: 0 1px 2px rgba(19,32,44,.06), 0 6px 20px -12px rgba(19,32,44,.25);
+  /* verkeersbord-achtige display (DIN), rest systeemfonts: geen externe fonts nodig */
+  --display: "Bahnschrift", "DIN Alternate", "Segoe UI Variable Display", system-ui, sans-serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "Cascadia Mono", "SF Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0E141A; --surface: #161F28; --surface-2: #1B2631; --ink: #E4EAF0; --ink-2: #A6B3C0; --ink-3: #76848F;
+    --line: #2A3643; --line-2: #222D38;
+    --o: #909CF2; --t: #E2AA4C; --a: #4EC0B7; --p: #D97DB7;
+    --ok: #58C27C; --warn: #E6A63A; --bad: #EE6B5F;
+    --btn: #E4EAF0; --btn-ink: #0E141A; --prod-ink: #1A0E16; --focus: #909CF2;
+    --shadow: 0 1px 2px rgba(0,0,0,.3), 0 8px 24px -14px rgba(0,0,0,.6);
+  }
+}
 * { box-sizing: border-box; }
-body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: #222; background: #f5f6f7; }
-main { max-width: 560px; margin: 0 auto; padding: 32px 20px; }
-h1 { color: var(--merk); margin: .2em 0 .4em; font-size: 26px; letter-spacing: -.02em; }
-.muted { color: #667; }
-.klein { font-size: 12.5px; }
-code { background: #eef0f2; padding: 1px 5px; border-radius: 5px; font-size: .92em; }
-#env-badge:not(:empty) { display: inline-block; vertical-align: middle; background: var(--merk); color: #fff;
-  padding: 2px 9px; border-radius: 999px; font-size: 12px; font-weight: 700; letter-spacing: .06em; }
-.kaart { background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 18px; margin-top: 16px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.06); }
-button { background: var(--merk); color: #fff; border: 0; border-radius: 9px; padding: 10px 18px;
-  font-size: 15px; font-weight: 600; cursor: pointer; transition: background .12s; }
-button:hover { background: var(--merk-donker); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--sans); -webkit-font-smoothing: antialiased; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+code { font-family: var(--mono); background: var(--surface-2); border: 1px solid var(--line-2); padding: 0 5px; border-radius: 4px; font-size: .92em; }
+.mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.wrap { max-width: 1360px; margin: 0 auto; padding: 24px 24px 40px; display: flex; flex-direction: column; gap: 20px; }
+
+/* kop */
+header { display: flex; flex-wrap: wrap; gap: 16px 32px; align-items: flex-end; justify-content: space-between; }
+.brand { display: flex; flex-direction: column; gap: 4px; }
+.brand h1 { margin: 0; font: 700 32px/1.05 var(--display); letter-spacing: -.01em; text-wrap: balance; }
+.brand p { margin: 0; color: var(--ink-2); }
+#env-badge:not(:empty) { display: inline-block; vertical-align: 6px; background: var(--merk); color: #fff;
+  padding: 3px 9px; border-radius: 999px; font: 700 12px/1.2 var(--sans); letter-spacing: .06em; }
+.demo-tag { display: inline-block; font: 500 11px/1 var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--ink-3);
+  border: 1px dashed var(--line); padding: 4px 6px; border-radius: 4px; margin-left: 6px; vertical-align: 1px; }
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; background: var(--surface); border: 1px solid var(--line); border-radius: 999px;
+  padding: 6px 12px 6px 8px; cursor: pointer; font-size: 13px; color: var(--ink-2); }
+.toggle:hover { border-color: var(--ink-3); }
+.toggle .sw { width: 26px; height: 16px; border-radius: 999px; background: var(--line); position: relative; transition: background .15s; }
+.toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--surface); transition: transform .15s; }
+.toggle[aria-pressed="true"] { color: var(--ink); }
+.toggle[aria-pressed="true"] .sw { background: var(--tc, var(--ok)); }
+.toggle[aria-pressed="true"] .sw::after { transform: translateX(10px); }
+.linkbtn { background: none; border: 0; color: var(--ink-3); cursor: pointer; font-size: 13px; padding: 6px 8px; text-decoration: underline; text-underline-offset: 3px; }
+.linkbtn:hover:not(:disabled) { color: var(--ink); }
+.linkbtn:disabled { cursor: not-allowed; opacity: .5; }
+
+.summary { display: flex; flex-wrap: wrap; gap: 6px 20px; color: var(--ink-2); font-size: 13px; padding: 10px 14px;
+  background: var(--surface-2); border: 1px solid var(--line-2); border-radius: 8px; }
+.summary b { color: var(--ink); font-weight: 600; }
+
+/* omgevingen */
+.lanes { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.lane { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; display: flex; flex-direction: column; box-shadow: var(--shadow); min-width: 0; }
+.lane.is-prod { border-color: color-mix(in srgb, var(--p) 45%, var(--line)); }
+.lane-head { display: flex; gap: 12px; align-items: flex-start; padding: 16px 16px 12px; }
+.glyph { font: 700 46px/.8 var(--display); color: var(--env); width: 34px; flex: none; padding-top: 4px; }
+.lane-title { flex: 1; min-width: 0; }
+.lane-title h2 { margin: 0; font: 600 15px/1.3 var(--sans); }
+.lane-title .host { font: 12px/1.4 var(--mono); color: var(--ink-3); overflow-wrap: anywhere; }
+.pill { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; padding: 3px 8px; border-radius: 999px; white-space: nowrap;
+  background: color-mix(in srgb, var(--c) 13%, transparent); color: var(--c); }
+.pill::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.pill.busy::before { animation: pulse 1s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .25; } }
+
+.lane-body { padding: 0 16px 14px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+.ver { display: flex; flex-direction: column; gap: 2px; }
+.ver-btn { all: unset; cursor: pointer; font: 500 24px/1.15 var(--mono); letter-spacing: -.02em; font-variant-numeric: tabular-nums;
+  border-radius: 4px; align-self: flex-start; border-bottom: 2px solid transparent; }
+.ver-btn:hover { border-bottom-color: var(--line); }
+.ver-btn.sel { border-bottom-color: var(--env); }
+.ver-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.ver-meta { font-size: 12px; color: var(--ink-3); }
+.ver-meta .mono { color: var(--ink-2); }
+.note { font-size: 12px; line-height: 1.45; padding: 8px 10px; border-radius: 6px; background: color-mix(in srgb, var(--bad) 10%, transparent); color: var(--ink); }
+.note b { color: var(--bad); }
+
+.steps { list-style: none; margin: 0; padding: 10px 12px; display: flex; flex-direction: column; gap: 5px; background: var(--surface-2); border-radius: 6px; font-size: 12.5px; }
+.steps .hd { font-size: 12px; color: var(--ink-2); margin-bottom: 2px; }
+.steps li { display: flex; gap: 8px; align-items: center; color: var(--ink-3); }
+.steps li i { font-style: normal; width: 14px; text-align: center; font-family: var(--mono); flex: none; }
+.steps li.done { color: var(--ink-2); } .steps li.done i { color: var(--ok); }
+.steps li.now { color: var(--ink); font-weight: 500; } .steps li.now i { color: var(--env); animation: pulse 1s infinite; }
+.steps li.fail { color: var(--bad); font-weight: 500; }
+
+.facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; margin: 0; font-size: 12.5px; }
+.facts dt { color: var(--ink-3); } .facts dd { margin: 0; color: var(--ink-2); min-width: 0; overflow-wrap: anywhere; }
+.metric { display: flex; align-items: flex-end; gap: 10px; }
+.metric .num { font: 500 13px/1 var(--mono); color: var(--ink); white-space: nowrap; }
+.metric .num small { color: var(--ink-3); font-weight: 400; }
+.spark { flex: 1; height: 26px; min-width: 0; }
+.spark svg { width: 100%; height: 100%; display: block; overflow: visible; }
+
+.gate { border-top: 1px dashed var(--line); padding: 12px 16px 16px; display: flex; flex-direction: column; gap: 10px;
+  background: color-mix(in srgb, var(--env) 4%, transparent); border-radius: 0 0 10px 10px; }
+.gate-hd { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.gate-hd span { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
+.gate-hd em { font-style: normal; font-size: 12px; color: var(--ink-3); }
+.checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; }
+.checks li { display: flex; gap: 8px; align-items: flex-start; color: var(--ink-2); }
+.checks li .ic { flex: none; width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; font: 600 10px/1 var(--mono); margin-top: 1px; }
+.checks li.ok .ic { background: color-mix(in srgb, var(--ok) 16%, transparent); color: var(--ok); }
+.checks li.no .ic { background: color-mix(in srgb, var(--warn) 16%, transparent); color: var(--warn); }
+.checks li.run .ic { background: color-mix(in srgb, var(--env) 16%, transparent); color: var(--env); animation: pulse 1s infinite; }
+.checks li .lbl { flex: 1; min-width: 0; }
+.mini { flex: none; border: 1px solid var(--line); background: var(--surface); border-radius: 5px; padding: 1px 8px; font-size: 12px; cursor: pointer; color: var(--ink); }
+.mini:hover { border-color: var(--ink-3); }
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; border: 0; border-radius: 6px; padding: 9px 12px;
+  font-weight: 500; font-size: 13px; cursor: pointer; background: var(--btn); color: var(--btn-ink); }
+.btn:hover:not(:disabled) { filter: brightness(1.15); }
+.btn.prod { background: var(--p); color: var(--prod-ink); }
+.btn.ghost { background: transparent; color: var(--ink); border: 1px solid var(--line); }
+.btn.ghost:hover:not(:disabled) { border-color: var(--ink-3); filter: none; }
+.btn:disabled { cursor: not-allowed; background: var(--surface-2); color: var(--ink-3); border: 1px solid var(--line-2); }
+.why { font-size: 12px; color: var(--ink-3); margin: -4px 0 0; }
+
+/* releases + logboek */
+.lower { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 14px; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; min-width: 0; display: flex; flex-direction: column; }
+.panel-hd { display: flex; justify-content: space-between; align-items: baseline; padding: 14px 16px 10px; gap: 12px; }
+.panel-hd h2 { margin: 0; font: 700 18px/1.2 var(--display); }
+.panel-hd span { font-size: 12px; color: var(--ink-3); }
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-size: 11px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; color: var(--ink-3); padding: 6px 16px; border-bottom: 1px solid var(--line); }
+td { padding: 9px 16px; border-bottom: 1px solid var(--line-2); white-space: nowrap; color: var(--ink-2); }
+tbody tr { cursor: pointer; }
+tbody tr:hover td { background: var(--surface-2); }
+tbody tr.sel td { background: color-mix(in srgb, var(--o) 8%, transparent); }
+tbody tr.sel td:first-child { box-shadow: inset 3px 0 0 var(--ink); }
+td.v { font: 500 13px var(--mono); color: var(--ink); }
+.pips { display: inline-flex; gap: 3px; }
+.pip { width: 20px; height: 20px; border-radius: 4px; display: grid; place-items: center; font: 700 11px/1 var(--display); color: var(--ink-3); border: 1px solid var(--line-2); }
+.pip.on { background: color-mix(in srgb, var(--env) 16%, transparent); color: var(--env); border-color: transparent; }
+.pip.here { background: var(--env); color: var(--surface); border-color: transparent; }
+.detail { padding: 14px 16px 16px; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 8px; }
+.detail h3 { margin: 0; font: 600 14px var(--sans); }
+.detail h3 .mono { font-weight: 500; }
+.detail ul { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.detail li { display: flex; gap: 10px; font-size: 13px; color: var(--ink-2); }
+.detail li .mono { color: var(--ink-3); flex: none; width: 62px; }
+
+.log { list-style: none; margin: 0; padding: 0 8px 12px; overflow-y: auto; max-height: 430px; }
+.log li { display: grid; grid-template-columns: 86px 22px 1fr; gap: 8px; align-items: start; padding: 7px 8px; border-radius: 6px; font-size: 13px; color: var(--ink-2); }
+.log li.new { animation: flash 1.6s ease-out; }
+@keyframes flash { from { background: color-mix(in srgb, var(--ok) 14%, transparent); } to { background: transparent; } }
+.log time { font: 12px/1.6 var(--mono); color: var(--ink-3); white-space: nowrap; }
+.log .e { width: 20px; height: 20px; border-radius: 4px; display: grid; place-items: center; font: 700 11px/1 var(--display);
+  background: color-mix(in srgb, var(--env) 16%, transparent); color: var(--env); }
+.log li.bad .txt { color: var(--bad); }
+.log li.warn .txt { color: var(--warn); }
+.voet { font-size: 12px; color: var(--ink-3); }
+
+@media (max-width: 1150px) { .lanes { grid-template-columns: repeat(2, minmax(0, 1fr)); } .lower { grid-template-columns: 1fr; } }
+@media (max-width: 640px) { .lanes { grid-template-columns: 1fr; } .wrap { padding: 16px; } .brand h1 { font-size: 26px; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
-<main>
-  <h1>OTAP Platform Demo <span id="env-badge"></span></h1>
-  <p class="muted">Demo-app op het OTAP-platform. Deze pagina bewijst de keten:
-    build uit <code>src/</code>, thema en opslag per omgeving, en deploy naar GitHub Pages.</p>
-  <div class="kaart">
-    <button id="tik">Tik mij</button>
-    <p>Aantal tikken (bewaard per omgeving): <b id="teller">0</b></p>
-    <p class="muted klein">Opslagsleutel: <code id="sleutel"></code></p>
-  </div>
-</main>
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>OTAP-straat <span id="env-badge" title="Deze app draait zelf op deze omgeving"></span></h1>
+      <p>Van eerste build tot productie, met alle poorten ertussen. <span class="demo-tag">Demo · gesimuleerd</span></p>
+    </div>
+    <div class="controls" id="controls"></div>
+  </header>
+  <div class="summary" id="summary"></div>
+  <section class="lanes" id="lanes" aria-label="Omgevingen"></section>
+  <section class="lower">
+    <div class="panel">
+      <div class="panel-hd"><h2>Releases</h2><span>Klik een release voor de wijzigingen</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>Versie</th><th>Commit</th><th>Branch</th><th>Gebouwd</th><th>Doorlopen</th></tr></thead>
+        <tbody id="rels"></tbody>
+      </table></div>
+      <div class="detail" id="detail"></div>
+    </div>
+    <div class="panel">
+      <div class="panel-hd"><h2>Logboek</h2><span id="logcount"></span></div>
+      <ul class="log" id="log"></ul>
+    </div>
+  </section>
+  <footer class="voet">OTAP Platform Demo · opslag per omgeving: <code id="sleutel"></code></footer>
+</div>
 <script>(function () {
 'use strict';
 
@@ -44,26 +209,363 @@ button:hover { background: var(--merk-donker); }
 const STORAGE_KEY = 'prive-otap-demo';   // prod / .acc / .test
 const ENV = 'prod';
 const ENV_LABEL = '';
-function lees() {
-  try { return parseInt(localStorage.getItem(STORAGE_KEY) || '0', 10) || 0; }
-  catch (e) { return 0; }
+// Vaste gegevens van de gesimuleerde releasestraat.
+const OPERATOR = 'H. de Rooij', PO = 'S. Bakker', CM = 'R. Visser';
+const ORDER = ['O', 'T', 'A', 'P'];
+const NEXT = { O: 'T', T: 'A', A: 'P' };
+const OMG = {
+  O: { name: 'Ontwikkeling', host: 'ontw.platform.intern', data: 'Synthetische data', inst: '1 instantie', db: 'pg-ontw-01', base: 190 },
+  T: { name: 'Test', host: 'test.platform.intern', data: 'Vaste testset · 1.200 dossiers', inst: '1 instantie', db: 'pg-test-01', base: 220 },
+  A: { name: 'Acceptatie', host: 'acc.platform.intern', data: 'Geanonimiseerde productiekopie', inst: '2 instanties', db: 'pg-acc-01', base: 165 },
+  P: { name: 'Productie', host: 'platform.intern', data: 'Productiedata', inst: '3 instanties', db: 'pg-prod-01 (HA)', base: 140 }
+};
+const STEPS = {
+  build: ['Broncode ophalen (main)', 'Compileren', 'Unittests 412/412', 'SAST-scan', 'Image publiceren', 'Uitrollen op Ontwikkeling'],
+  std: ['Artefact ophalen', 'Database-migraties (Flyway)', 'Uitrollen', 'Rooktest'],
+  prod: ['Groene omgeving opbouwen', 'Database-migraties (Flyway)', 'Rooktest', 'Verkeer 10% → groen', 'Verkeer 50% → groen', 'Verkeer 100% → groen', 'Blauwe omgeving afbouwen'],
+  rollback: ['Blauwe omgeving activeren', 'Verkeer 100% → blauw', 'Groene omgeving afbouwen']
+};
+const POOL = [
+  ['VEN-426', 'Dashboard voor teamleads'], ['VEN-429', 'Upgrade naar Node 22 LTS'], ['VEN-431', 'Fix: sessie verloopt te vroeg'],
+  ['VEN-433', 'PDF-bijlagen tot 20 MB'], ['VEN-436', 'Toegankelijkheid: focusstijlen formulieren'], ['VEN-438', 'Fix: sortering op status'],
+  ['VEN-441', 'Herinneringsmail na 14 dagen'], ['VEN-444', 'Afwijzing met toelichting']
+];
+const MONTHS = ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'];
+
+function seed() {
+  return {
+    releases: [
+      { v: '2026.09.3', commit: '5c2e8f1', branch: 'main', built: '10 sep 11:22', reached: ['O'], changes: [['VEN-420', 'Bulkgoedkeuring voor managers'], ['VEN-423', 'Fix: e-mailnotificatie dubbel verstuurd']] },
+      { v: '2026.09.2', commit: 'd19be70', branch: 'main', built: '8 sep 15:05', reached: ['O', 'T'], changes: [['VEN-412', 'Kilometers per rit invoeren'], ['VEN-415', 'Tarieftabel 2026 (€ 0,23 per km)'], ['VEN-417', 'Performance: index op declaratiedatum']] },
+      { v: '2026.09.1', commit: 'a7c04e9', branch: 'main', built: '3 sep 09:48', reached: ['O', 'T', 'A'], changes: [['VEN-398', 'Inloggen via Entra ID (SSO)'], ['VEN-402', 'Auditlog voor wijzigingen in dossiers'], ['VEN-405', 'Fix: datumfilter in overzicht']] },
+      { v: '2026.08.4', commit: '3fa91c2', branch: 'release/2026.08', built: '28 aug 14:10', reached: ['O', 'T', 'A', 'P'], changes: [['VEN-371', 'Export van declaraties naar CSV'], ['VEN-380', 'Fix: afronding kilometervergoeding']] },
+      { v: '2026.08.3', commit: '9be2d44', branch: 'release/2026.08', built: '19 aug 10:31', reached: ['O', 'T', 'A', 'P'], changes: [['VEN-362', 'Bijlagen vanaf mobiel uploaden'], ['VEN-366', 'Fix: rechten voor gastgebruikers']] }
+    ],
+    envs: {
+      O: { hist: ['2026.09.2', '2026.09.3'], by: 'CI-pipeline', at: '10 sep 11:22', status: 'ok' },
+      T: { hist: ['2026.09.1', '2026.09.2'], by: 'CI-pipeline', at: '9 sep 16:40', status: 'ok' },
+      A: { hist: ['2026.08.4', '2026.09.1'], by: OPERATOR, at: '9 sep 10:04', status: 'ok' },
+      P: { hist: ['2026.08.3', '2026.08.4'], by: 'M. Jansen', at: '2 sep 19:12', status: 'ok' }
+    },
+    gates: { T: { reg: 'idle' }, A: { uat: false, cab: false, chg: null } },
+    windowOpen: false, freeze: false, failSmoke: false, selected: '2026.09.2', pool: 0, chgSeq: 188,
+    log: [
+      { t: '10 sep 11:22', e: 'O', lv: 'ok', x: '2026.09.3 gebouwd en uitgerold door CI-pipeline' },
+      { t: '9 sep 16:40', e: 'T', lv: 'ok', x: '2026.09.2 gepromoveerd naar Test' },
+      { t: '9 sep 10:04', e: 'A', lv: 'ok', x: '2026.09.1 gepromoveerd naar Acceptatie door ' + OPERATOR },
+      { t: '2 sep 19:12', e: 'P', lv: 'ok', x: '2026.08.4 live in Productie · CHG-0187 · M. Jansen' }
+    ]
+  };
 }
-function schrijf(n) {
-  try { localStorage.setItem(STORAGE_KEY, String(n)); } catch (e) { /* geen opslag */ }
+// Toestand, poortcriteria, uitrol en acties. Opslag per omgeving via STORAGE_KEY.
+const reduced = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+let DUR = reduced ? 220 : 850;        // duur per uitrolstap (ms)
+let REG_MS = reduced ? 120 : 260;     // tik van de regressietest (ms)
+
+function laad() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(STORAGE_KEY)); } catch (e) { s = null; }
+  if (!s || typeof s !== 'object' || !s.envs) s = seed();
+  if (s.gates.T.reg === 'running') s.gates.T.reg = 'idle';   // onderbroken test na herladen
+  ORDER.forEach(function (k) { if (s.envs[k].status !== 'failed') s.envs[k].status = 'ok'; });
+  return s;
 }
-function teken() {
-  document.getElementById('teller').textContent = lees();
+let S = laad();
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch (e) { /* geen opslag */ }
+}
+
+const RUN = {};      // lopende uitrol per omgeving (niet opgeslagen)
+let regCount = 0, regTimer = null, freshLog = 0;
+
+function cur(k) { const h = S.envs[k].hist; return h[h.length - 1]; }
+function prev(k) { const h = S.envs[k].hist; return h.length > 1 ? h[h.length - 2] : null; }
+function rel(v) { return S.releases.find(function (r) { return r.v === v; }); }
+function busy() { return Object.keys(RUN).length > 0; }
+function now() {
+  const d = new Date();
+  return d.getDate() + ' ' + MONTHS[d.getMonth()] + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+}
+function log(e, lv, x) {
+  S.log.unshift({ t: now(), e: e, lv: lv, x: x });
+  freshLog++;
+  if (S.log.length > 80) S.log.pop();
+}
+
+/* ---------- poortcriteria ---------- */
+function gate(src) {
+  const tgt = NEXT[src], g = [];
+  if (src === 'O') {
+    g.push({ ok: true, l: 'Build geslaagd' }, { ok: true, l: 'Unittests 412/412 geslaagd' }, { ok: true, l: 'SAST-scan: 0 kritieke bevindingen' });
+  } else if (src === 'T') {
+    const r = S.gates.T.reg;
+    g.push(r === 'pass' ? { ok: true, l: 'Regressietest 186/186 geslaagd' }
+      : r === 'running' ? { run: true, l: 'Regressietest loopt… ' + regCount + '/186' }
+      : { ok: false, l: 'Regressietest nog niet uitgevoerd', act: 'reg', al: 'Starten' });
+    g.push({ ok: !S.freeze, l: S.freeze ? 'Release freeze actief' : 'Geen release freeze' });
+  } else {
+    const a = S.gates.A;
+    g.push(a.uat ? { ok: true, l: 'Gebruikersacceptatie: akkoord van ' + PO + ' (PO)' } : { ok: false, l: 'Gebruikersacceptatie door product owner', act: 'uat', al: 'Akkoord geven' });
+    g.push(a.cab ? { ok: true, l: a.chg + ' goedgekeurd door ' + CM + ' · vier-ogenprincipe' } : { ok: false, l: 'Change-goedkeuring (goedkeurder ≠ uitvoerder)', act: 'cab', al: 'Goedkeuren' });
+    g.push({ ok: S.windowOpen, l: S.windowOpen ? 'Binnen wijzigingsvenster (tot 20:00)' : 'Buiten wijzigingsvenster (18:00–20:00)' });
+    g.push({ ok: !S.freeze, l: S.freeze ? 'Release freeze actief' : 'Geen release freeze' });
+  }
+  let why = '';
+  if (RUN[src] || RUN[tgt]) why = 'Wacht tot de lopende uitrol klaar is.';
+  else if (cur(src) === cur(tgt)) why = OMG[tgt].name + ' draait deze versie al.';
+  else if (g.some(function (c) { return !c.ok; })) why = 'Nog niet alle poortcriteria zijn gehaald.';
+  return { g: g, why: why, ok: !why };
+}
+
+/* ---------- uitrol ---------- */
+function deploy(k, v, kind, by) {
+  RUN[k] = { steps: STEPS[kind], i: 0, v: v, kind: kind, fail: false };
+  S.envs[k].status = 'ok';
+  log(k, 'info', (kind === 'rollback' ? 'Terugdraaien naar ' : kind === 'build' ? 'Build ' : 'Uitrol ') + v + ' gestart door ' + by);
+  render();
+  function step() {
+    const r = RUN[k];
+    if (!r) return;
+    if (kind === 'prod' && S.failSmoke && r.steps[r.i] === 'Rooktest') {
+      r.fail = true;
+      render();
+      setTimeout(function () {
+        delete RUN[k];
+        S.envs[k].status = 'failed';
+        log(k, 'bad', 'Rooktest ' + v + ' mislukt: /api/health gaf 503. Verkeer blijft op ' + cur(k) + ', groene omgeving afgebouwd.');
+        save(); render();
+      }, DUR * 1.4);
+      return;
+    }
+    r.i++;
+    if (r.i >= r.steps.length) { done(k, v, kind, by); return; }
+    render();
+    setTimeout(step, DUR);
+  }
+  setTimeout(step, DUR);
+}
+
+function done(k, v, kind, by) {
+  delete RUN[k];
+  const e = S.envs[k];
+  if (kind === 'rollback') e.hist.pop(); else e.hist.push(v);
+  if (e.hist.length > 6) e.hist.shift();
+  e.by = by; e.at = now(); e.status = 'ok';
+  const r = rel(v);
+  if (r && r.reached.indexOf(k) < 0) r.reached.push(k);
+  if (k === 'T') S.gates.T.reg = 'idle';
+  if (k === 'A') S.gates.A = { uat: false, cab: false, chg: null };
+  if (kind === 'build') log(k, 'ok', v + ' gebouwd en uitgerold op Ontwikkeling');
+  else if (kind === 'rollback') log(k, 'warn', 'Productie teruggedraaid naar ' + v + ' door ' + by);
+  else if (k === 'P') { log(k, 'ok', v + ' live in Productie · ' + (S.gates.A.chg || 'CHG') + ' · ' + by); S.gates.A = { uat: false, cab: false, chg: null }; }
+  else log(k, 'ok', v + ' gepromoveerd naar ' + OMG[k].name + ' door ' + by);
+  save(); render();
+}
+
+/* ---------- acties ---------- */
+const ACT = {
+  promote: function (src) {
+    if (!gate(src).ok) return;
+    const tgt = NEXT[src];
+    deploy(tgt, cur(src), tgt === 'P' ? 'prod' : 'std', OPERATOR);
+  },
+  build: function () {
+    if (RUN.O) return;
+    const last = S.releases[0].v.split('.');
+    const v = last[0] + '.' + last[1] + '.' + (+last[2] + 1);
+    const a = POOL[S.pool % POOL.length], b = POOL[(S.pool + 1) % POOL.length];
+    S.pool += 2;
+    const commit = Math.random().toString(16).slice(2, 9).padEnd(7, '0');
+    S.releases.unshift({ v: v, commit: commit, branch: 'main', built: now(), reached: [], changes: [a, b] });
+    S.selected = v;
+    deploy('O', v, 'build', 'CI-pipeline');
+  },
+  reg: function () {
+    if (S.gates.T.reg !== 'idle') return;
+    S.gates.T.reg = 'running';
+    regCount = 0;
+    log('T', 'info', 'Regressietest gestart op ' + cur('T'));
+    render();
+    regTimer = setInterval(function () {
+      regCount = Math.min(186, regCount + (reduced ? 62 : 17));
+      if (regCount >= 186) {
+        clearInterval(regTimer);
+        S.gates.T.reg = 'pass';
+        log('T', 'ok', 'Regressietest ' + cur('T') + ': 186/186 geslaagd');
+        save();
+      }
+      render();
+    }, REG_MS);
+  },
+  uat: function () { S.gates.A.uat = true; log('A', 'ok', 'Gebruikersacceptatie ' + cur('A') + ' akkoord door ' + PO); save(); render(); },
+  cab: function () {
+    const c = 'CHG-0' + (S.chgSeq++);
+    S.gates.A.cab = true; S.gates.A.chg = c;
+    log('A', 'ok', c + ' voor ' + cur('A') + ' goedgekeurd door ' + CM);
+    save(); render();
+  },
+  rollback: function () { const p = prev('P'); if (!p || RUN.P) return; deploy('P', p, 'rollback', OPERATOR); },
+  win: function () {
+    S.windowOpen = !S.windowOpen;
+    log('sys', 'info', S.windowOpen ? 'Wijzigingsvenster geopend (18:00–20:00, gesimuleerd)' : 'Wijzigingsvenster gesloten');
+    save(); render();
+  },
+  freeze: function () {
+    S.freeze = !S.freeze;
+    log('sys', S.freeze ? 'warn' : 'info', S.freeze ? 'Release freeze ingesteld: geen promoties naar A en P' : 'Release freeze opgeheven');
+    save(); render();
+  },
+  fail: function () { S.failSmoke = !S.failSmoke; save(); render(); },
+  sel: function (v) { S.selected = v; save(); render(); },
+  reset: function () {
+    if (busy()) return;
+    clearInterval(regTimer);
+    S = seed(); regCount = 0;
+    save(); render();
+  }
+};
+// Weergave: omgevingsbanen, releasetabel en logboek.
+const SERIES = {};
+ORDER.forEach(function (k) {
+  const b = OMG[k].base;
+  SERIES[k] = Array.from({ length: 28 }, function (_, i) { return b + Math.round(Math.sin(i * .7 + b) * 14 + (Math.random() - .5) * 18); });
+});
+
+function envVar(k) { return 'var(--' + k.toLowerCase() + ')'; }
+
+function spark(k) {
+  const s = SERIES[k], min = Math.min.apply(null, s) - 10, max = Math.max.apply(null, s) + 10, w = 100, h = 26;
+  const pts = s.map(function (y, i) { return [i / (s.length - 1) * w, h - (y - min) / (max - min) * h]; });
+  const line = pts.map(function (p) { return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+  const last = pts[pts.length - 1];
+  return '<svg viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true">' +
+    '<path d="M0,' + h + ' L' + line.replace(/ /g, ' L') + ' L' + w + ',' + h + ' Z" fill="var(--env)" fill-opacity=".12" stroke="none"/>' +
+    '<polyline points="' + line + '" fill="none" stroke="var(--env)" stroke-width="1.5" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>' +
+    '<circle cx="' + last[0] + '" cy="' + last[1].toFixed(1) + '" r="2.6" fill="var(--env)" vector-effect="non-scaling-stroke"/></svg>';
+}
+
+function status(k) {
+  const r = RUN[k];
+  if (r) {
+    if (r.fail) return '<span class="pill" style="--c:var(--bad)">Rooktest faalt</span>';
+    return '<span class="pill busy" style="--c:var(--env)">' + (r.kind === 'build' ? 'Bouwen…' : r.kind === 'rollback' ? 'Terugdraaien…' : 'Uitrollen…') + '</span>';
+  }
+  if (S.envs[k].status === 'failed') return '<span class="pill" style="--c:var(--bad)">Uitrol mislukt</span>';
+  return '<span class="pill" style="--c:var(--ok)">Gezond</span>';
+}
+
+function lane(k) {
+  const E = OMG[k], e = S.envs[k], v = cur(k), r = RUN[k], R = rel(v);
+  let h = '<article class="lane' + (k === 'P' ? ' is-prod' : '') + '" data-env="' + k + '" style="--env:' + envVar(k) + '">';
+  h += '<div class="lane-head"><div class="glyph" aria-hidden="true">' + k + '</div><div class="lane-title"><h2>' + E.name + '</h2><div class="host">' + E.host + '</div></div>' + status(k) + '</div>';
+  h += '<div class="lane-body"><div class="ver"><button class="ver-btn' + (S.selected === v ? ' sel' : '') + '" data-a="sel" data-k="' + v + '" title="Toon wijzigingen">' + v + '</button>';
+  h += '<div class="ver-meta"><span class="mono">' + (R ? R.commit : '') + '</span> · ' + e.by + ' · ' + e.at + '</div></div>';
+  if (r) {
+    h += '<ol class="steps"><li class="hd">' + (r.kind === 'rollback' ? 'Terug naar ' : 'Nieuw: ') + '<span class="mono">' + r.v + '</span></li>';
+    r.steps.forEach(function (s, i) {
+      const c = i < r.i ? 'done' : i === r.i ? (r.fail ? 'fail' : 'now') : '';
+      h += '<li class="' + c + '"><i>' + (i < r.i ? '✓' : i === r.i ? (r.fail ? '✕' : '●') : '○') + '</i>' + s + '</li>';
+    });
+    h += '</ol>';
+  } else if (e.status === 'failed') {
+    h += '<div class="note"><b>Uitrol teruggezet.</b> De rooktest faalde; gebruikers merkten niets. Productie draait nog <span class="mono">' + v + '</span>.</div>';
+  }
+  h += '<div class="metric"><span class="num" data-p95="' + k + '">' + SERIES[k][SERIES[k].length - 1] + ' <small>ms p95</small></span><div class="spark" data-spark="' + k + '">' + spark(k) + '</div></div>';
+  h += '<dl class="facts"><dt>Data</dt><dd>' + E.data + '</dd><dt>Capaciteit</dt><dd>' + E.inst + '</dd><dt>Database</dt><dd class="mono">' + E.db + '</dd></dl></div>';
+
+  h += '<div class="gate">';
+  if (k !== 'P') {
+    const G = gate(k), tgt = NEXT[k];
+    h += '<div class="gate-hd"><span>Poort naar ' + OMG[tgt].name + '</span><em>' + G.g.filter(function (c) { return c.ok; }).length + '/' + G.g.length + '</em></div><ul class="checks">';
+    G.g.forEach(function (c) {
+      h += '<li class="' + (c.run ? 'run' : c.ok ? 'ok' : 'no') + '"><span class="ic">' + (c.run ? '…' : c.ok ? '✓' : '!') + '</span><span class="lbl">' + c.l + '</span>' +
+        (c.act && !busy() ? '<button class="mini" data-a="' + c.act + '">' + c.al + '</button>' : '') + '</li>';
+    });
+    h += '</ul>';
+    if (k === 'O') h += '<button class="btn ghost" data-a="build"' + (RUN.O ? ' disabled' : '') + '>Nieuwe build van main</button>';
+    h += '<button class="btn' + (tgt === 'P' ? ' prod' : '') + '" data-a="promote" data-k="' + k + '"' + (G.ok ? '' : ' disabled') + '>Promoveer ' + v + ' naar ' + OMG[tgt].name + ' →</button>';
+    if (G.why) h += '<p class="why">' + G.why + '</p>';
+  } else {
+    const p = prev('P');
+    h += '<div class="gate-hd"><span>Noodprocedure</span><em>geen venster nodig</em></div>';
+    h += '<p class="why" style="margin:0">Terugdraaien schakelt het verkeer terug naar de vorige blauwe omgeving.</p>';
+    h += '<button class="btn ghost" data-a="rollback"' + (p && !RUN.P ? '' : ' disabled') + '>' + (p ? 'Terugdraaien naar ' + p : 'Geen vorige versie beschikbaar') + '</button>';
+  }
+  return h + '</div></article>';
+}
+
+function render() {
+  document.getElementById('controls').innerHTML =
+    '<button class="toggle" data-a="win" aria-pressed="' + S.windowOpen + '"><span class="sw"></span>Wijzigingsvenster ' + (S.windowOpen ? 'open' : 'gesloten') + '</button>' +
+    '<button class="toggle" data-a="freeze" aria-pressed="' + S.freeze + '" style="--tc:var(--warn)"><span class="sw"></span>Release freeze</button>' +
+    '<button class="toggle" data-a="fail" aria-pressed="' + S.failSmoke + '" style="--tc:var(--bad)"><span class="sw"></span>Scenario: rooktest faalt</button>' +
+    '<button class="linkbtn" data-a="reset"' + (busy() ? ' disabled' : '') + '>Demo resetten</button>';
+
+  const ahead = S.releases.filter(function (r) { return r.reached.indexOf('P') < 0 && r.reached.length; }).length;
+  document.getElementById('summary').innerHTML =
+    '<span>Productie draait <b class="mono">' + cur('P') + '</b></span>' +
+    '<span><b>' + ahead + '</b> ' + (ahead === 1 ? 'release' : 'releases') + ' onderweg naar productie</span>' +
+    '<span>Wijzigingsvenster: <b>' + (S.windowOpen ? 'open tot 20:00' : 'vandaag 18:00–20:00') + '</b></span>' +
+    '<span>Ingelogd als <b>' + OPERATOR + '</b> · release manager</span>';
+
+  document.getElementById('lanes').innerHTML = ORDER.map(lane).join('');
+
+  document.getElementById('rels').innerHTML = S.releases.map(function (r) {
+    const pips = ORDER.map(function (k) {
+      const here = cur(k) === r.v || (RUN[k] && RUN[k].v === r.v && RUN[k].kind !== 'rollback');
+      return '<span class="pip' + (here ? ' here' : r.reached.indexOf(k) >= 0 ? ' on' : '') + '" style="--env:' + envVar(k) + '" title="' + OMG[k].name + (here ? ' (nu)' : '') + '">' + k + '</span>';
+    }).join('');
+    return '<tr class="' + (S.selected === r.v ? 'sel' : '') + '" data-a="sel" data-k="' + r.v + '" tabindex="0"><td class="v">' + r.v + '</td><td class="mono">' + r.commit +
+      '</td><td class="mono">' + r.branch + '</td><td>' + r.built + '</td><td><span class="pips">' + pips + '</span></td></tr>';
+  }).join('');
+
+  const s = rel(S.selected) || S.releases[0];
+  document.getElementById('detail').innerHTML = '<h3>Wijzigingen in <span class="mono">' + s.v + '</span></h3><ul>' +
+    s.changes.map(function (c) { return '<li><span class="mono">' + c[0] + '</span>' + c[1] + '</li>'; }).join('') + '</ul>';
+
+  document.getElementById('logcount').textContent = S.log.length + ' gebeurtenissen';
+  document.getElementById('log').innerHTML = S.log.map(function (l, i) {
+    const sys = l.e === 'sys';
+    return '<li class="' + l.lv + (i < freshLog ? ' new' : '') + '"><time>' + l.t + '</time><span class="e" style="--env:' + (sys ? 'var(--ink-3)' : envVar(l.e)) + '">' +
+      (sys ? '·' : l.e) + '</span><span class="txt">' + l.x + '</span></li>';
+  }).join('');
+  freshLog = 0;
+}
+
+function tikMetrieken() {
+  ORDER.forEach(function (k) {
+    const b = OMG[k].base, s = SERIES[k];
+    s.push(Math.round(b + (Math.random() - .5) * 26 + (RUN[k] ? 60 + Math.random() * 50 : 0)));
+    s.shift();
+    const sp = document.querySelector('[data-spark="' + k + '"]'), n = document.querySelector('[data-p95="' + k + '"]');
+    if (sp) sp.innerHTML = spark(k);
+    if (n) n.innerHTML = s[s.length - 1] + ' <small>ms p95</small>';
+  });
 }
 if (ENV_LABEL) document.getElementById('env-badge').textContent = ENV_LABEL;
 document.getElementById('sleutel').textContent = STORAGE_KEY;
-teken();
-document.getElementById('tik').addEventListener('click', function () {
-  schrijf(lees() + 1);
-  teken();
+
+document.addEventListener('click', function (e) {
+  const b = e.target.closest('[data-a]');
+  if (!b || b.disabled) return;
+  ACT[b.dataset.a](b.dataset.k);
+});
+document.getElementById('rels').addEventListener('keydown', function (e) {
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.dataset.a) { e.preventDefault(); ACT.sel(e.target.dataset.k); }
 });
 
+render();
+setInterval(tikMetrieken, reduced ? 8000 : 3000);
+
 // Testhaakje voor de geautomatiseerde tests.
-window.__app = { get env() { return ENV; }, get key() { return STORAGE_KEY; }, lees: lees, schrijf: schrijf };
+window.__app = {
+  get env() { return ENV; },
+  get key() { return STORAGE_KEY; },
+  staat: function () { return JSON.parse(JSON.stringify(S)); },
+  huidig: cur,
+  bezig: busy,
+  tempo: function (ms) { DUR = ms; REG_MS = ms; }
+};
 })();
 </script>
 </body>
