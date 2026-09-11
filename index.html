@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Privé Demo</title>
+<title>OTAP Platform Demo</title>
 <meta name="theme-color" content="#2563eb">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Demo">
-<link rel="manifest" href='data:application/manifest+json,{"name":"Priv%C3%A9%20Demo","short_name":"Demo","display":"standalone","start_url":"."}'>
+<meta name="apple-mobile-web-app-title" content="OTAP Demo">
+<link rel="manifest" href='data:application/manifest+json,{"name":"OTAP%20Platform%20Demo","short_name":"OTAP Demo","display":"standalone","start_url":"."}'>
 <style>:root { --merk: #2563eb; --merk-donker: #1e40af; --merk-licht: #3b82f6; }
 * { box-sizing: border-box; }
 body { margin: 0; font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; color: #222; background: #f5f6f7; }
@@ -28,7 +28,7 @@ button:hover { background: var(--merk-donker); }
 </head>
 <body>
 <main>
-  <h1>Privé Demo <span id="env-badge"></span></h1>
+  <h1>OTAP Platform Demo <span id="env-badge"></span></h1>
   <p class="muted">Demo-app op het OTAP-platform. Deze pagina bewijst de keten:
     build uit <code>src/</code>, thema en opslag per omgeving, en deploy naar GitHub Pages.</p>
   <div class="kaart">
@@ -41,7 +41,7 @@ button:hover { background: var(--merk-donker); }
 'use strict';
 
 // Door build.py per omgeving ingevuld:
-const STORAGE_KEY = 'prive-demo';   // prod / .acc / .test
+const STORAGE_KEY = 'prive-otap-demo';   // prod / .acc / .test
 const ENV = 'prod';
 const ENV_LABEL = '';
 function lees() {

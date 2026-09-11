@@ -1,7 +1,7 @@
 {
-  "name": "Privé Demo",
-  "short_name": "Demo",
-  "storage_key": "prive-demo",
+  "name": "OTAP Platform Demo",
+  "short_name": "OTAP Demo",
+  "storage_key": "prive-otap-demo",
   "theme": {
     "prod": { "merk": "#2563eb", "merk_donker": "#1e40af", "merk_licht": "#3b82f6" },
     "acc":  { "merk": "#b45309", "merk_donker": "#92400e", "merk_licht": "#d97706" },
