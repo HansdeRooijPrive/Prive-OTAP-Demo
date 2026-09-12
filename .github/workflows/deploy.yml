@@ -16,4 +16,4 @@ concurrency:
 
 jobs:
   otap:
-    uses: HansdeRooijPrive/otap-ci/.github/workflows/deploy.yml@v1
+    uses: HansdeRooijPrive/OTAP-CI/.github/workflows/deploy.yml@v1

@@ -8,6 +8,6 @@ on:
 
 jobs:
   verify:
-    uses: HansdeRooijPrive/otap-ci/.github/workflows/verify.yml@v1
+    uses: HansdeRooijPrive/OTAP-CI/.github/workflows/verify.yml@v1
   tests:
-    uses: HansdeRooijPrive/otap-ci/.github/workflows/tests.yml@v1
+    uses: HansdeRooijPrive/OTAP-CI/.github/workflows/tests.yml@v1

@@ -1,8 +1,8 @@
-# prive-otap-demo — OTAP Platform Demo
+# Prive-OTAP-Demo — OTAP Platform Demo
 
 Demo-app (privé) op het OTAP-platform, gegenereerd uit
-[`app-template-prive`](https://github.com/HansdeRooijPrive/app-template-prive).
-De CI/CD komt uit [`otap-ci`](https://github.com/HansdeRooijPrive/otap-ci).
+[`Prive-App-Template`](https://github.com/HansdeRooijPrive/Prive-App-Template).
+De CI/CD komt uit [`OTAP-CI`](https://github.com/HansdeRooijPrive/OTAP-CI).
 Doel: de volledige O → T → A → P-keten live laten zien.
 
 De app zelf is de **OTAP-straat**: een gesimuleerde releasestraat waarin je
@@ -15,9 +15,9 @@ fictief en worden per omgeving apart in `localStorage` bewaard.
 ## OTAP
 | Branch | Omgeving | URL |
 |--------|----------|-----|
-| `development` | Test | https://hansderooijprive.github.io/prive-otap-demo/test/ |
-| `acceptatie` | Acceptatie | https://hansderooijprive.github.io/prive-otap-demo/acceptatie/ |
-| `main` | Productie | https://hansderooijprive.github.io/prive-otap-demo/ |
+| `development` | Test | https://hansderooijprive.github.io/Prive-OTAP-Demo/test/ |
+| `acceptatie` | Acceptatie | https://hansderooijprive.github.io/Prive-OTAP-Demo/acceptatie/ |
+| `main` | Productie | https://hansderooijprive.github.io/Prive-OTAP-Demo/ |
 
 Werkwijze: wijzig op `development` → CI groen → door naar `acceptatie` →
 testen op de acceptatie-URL → pas na expliciet akkoord naar `main` (productie).
