@@ -8,8 +8,10 @@
 <meta name="theme-color" content="{{MERK}}">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="{{APP_SHORT}}">
-<link rel="manifest" href='data:application/manifest+json,{"name":"{{APP_NAME_URL}}","short_name":"{{APP_SHORT}}","display":"standalone","start_url":"."}'>
+<meta name="apple-mobile-web-app-title" content="{{APP_SHORT_ENV}}">
+<link rel="apple-touch-icon" href="data:image/png;base64,{{ICOON}}">
+<link rel="icon" href="data:image/png;base64,{{ICOON}}">
+<link rel="manifest" href='data:application/manifest+json,{"name":"{{APP_NAME_ENV_URL}}","short_name":"{{APP_SHORT_ENV_URL}}","display":"standalone","start_url":".","icons":[{"src":"data:image/png;base64,{{ICOON}}","sizes":"256x256","type":"image/png"}]}'>
 <style>{{STYLES}}</style>
 </head>
 <body>

@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
 Env-bewuste build: voegt src/ samen tot één self-contained index.html en vult
-per omgeving (prod/acc/test) de thema-kleur en de opslagsleutels in vanuit
-app.json. Geen Node/npm nodig.
+per omgeving (prod/acc/test) de thema-kleur, het app-icoon, de app-naam en de
+opslagsleutels in vanuit app.json. Geen Node/npm nodig.
 
     python build.py                 -> productie-build naar index.html
     python build.py --env=test      -> testvariant (andere kleur + opslagsleutel)
@@ -10,16 +10,22 @@ app.json. Geen Node/npm nodig.
     python build.py --check         -> faalt als index.html != productie-build
 """
 import argparse
+import base64
 import glob
 import json
 import os
+import struct
 import sys
 import urllib.parse
+import zlib
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 ENVS = ("prod", "acc", "test")
 SUFFIX = {"prod": "", "acc": ".acc", "test": ".test"}
 LABEL = {"prod": "", "acc": "ACCEPTATIE", "test": "TEST"}
+# Achter de app-naam, zodat het bijschrift onder het icoon op je beginscherm
+# meteen verraadt welke omgeving je hebt geïnstalleerd.
+NAAM_SUFFIX = {"prod": "", "acc": " acc", "test": " test"}
 
 
 def _read(rel):
@@ -38,6 +44,53 @@ def _theme(cfg, env):
     return kleur
 
 
+def _rgb(hexkleur):
+    h = hexkleur.lstrip("#")
+    if len(h) == 3:
+        h = "".join(c * 2 for c in h)
+    return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+
+
+def _maak_icoon(merk, merk_licht, maat=256):
+    """Eenvoudig app-icoon in de kleur van deze omgeving: afgeronde vierkant met
+    een diagonale band. Puur standaard-Python, zodat de CI niets hoeft te
+    installeren. Levert base64 (PNG) op."""
+    achter, band = _rgb(merk), _rgb(merk_licht)
+    r = maat // 5
+    rijen = bytearray()
+    for y in range(maat):
+        rijen.append(0)                                  # filterbyte per rij
+        for x in range(maat):
+            cx = min(max(x, r), maat - 1 - r)
+            cy = min(max(y, r), maat - 1 - r)
+            if (x - cx) ** 2 + (y - cy) ** 2 > r * r:    # buiten de afronding
+                rijen += b"\xff\xff\xff"
+            elif maat * 0.60 < y + x * 0.30 < maat * 0.78:
+                rijen += bytes(band)
+            else:
+                rijen += bytes(achter)
+
+    def blok(soort, data):
+        return (struct.pack(">I", len(data)) + soort + data +
+                struct.pack(">I", zlib.crc32(soort + data) & 0xFFFFFFFF))
+
+    png = (b"\x89PNG\r\n\x1a\n" +
+           blok(b"IHDR", struct.pack(">IIBBBBB", maat, maat, 8, 2, 0, 0, 0)) +
+           blok(b"IDAT", zlib.compress(bytes(rijen), 9)) +
+           blok(b"IEND", b""))
+    return base64.b64encode(png).decode("ascii")
+
+
+def _icoon(env, th):
+    """Eigen icoon van de app (src/icons/icon.<env>.png) als dat er is; anders
+    een gegenereerd icoon in de kleur van de omgeving."""
+    pad = os.path.join(ROOT, "src", "icons", "icon.%s.png" % env)
+    if os.path.exists(pad):
+        with open(pad, "rb") as f:
+            return base64.b64encode(f.read()).decode("ascii")
+    return _maak_icoon(th.get("merk", "#333333"), th.get("merk_licht", "#555555"))
+
+
 def _apply(text, repl):
     for k, v in repl.items():
         text = text.replace(k, v)
@@ -50,10 +103,18 @@ def build(env="prod"):
     cfg = _config()
     th = _theme(cfg, env)
     naam = cfg["name"]
+    kort = cfg.get("short_name", naam)
+    naam_env = naam + NAAM_SUFFIX[env]
+    kort_env = kort + NAAM_SUFFIX[env]
     repl = {
         "{{APP_NAME}}": naam,
         "{{APP_NAME_URL}}": urllib.parse.quote(naam),
-        "{{APP_SHORT}}": cfg.get("short_name", naam),
+        "{{APP_SHORT}}": kort,
+        "{{APP_NAME_ENV}}": naam_env,
+        "{{APP_NAME_ENV_URL}}": urllib.parse.quote(naam_env),
+        "{{APP_SHORT_ENV}}": kort_env,
+        "{{APP_SHORT_ENV_URL}}": urllib.parse.quote(kort_env),
+        "{{ICOON}}": _icoon(env, th),
         "{{STORAGE_KEY}}": cfg["storage_key"] + SUFFIX[env],
         "{{ENV}}": env,
         "{{ENV_LABEL}}": LABEL[env],
