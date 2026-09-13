@@ -19,26 +19,65 @@
   <header>
     <div class="brand">
       <h1>OTAP-straat <span id="env-badge" title="Deze app draait zelf op deze omgeving"></span></h1>
-      <p>Van eerste build tot productie, met alle poorten ertussen. <span class="demo-tag">Demo · gesimuleerd</span></p>
+      <p id="subtitel"></p>
     </div>
-    <div class="controls" id="controls"></div>
+    <div class="kiezer">
+      <label for="app-kies">App</label>
+      <select id="app-kies"></select>
+      <button class="mini" id="ververs" type="button" data-l="ververs">Verversen</button>
+      <button class="mini" type="button" data-l="toevoegen">App toevoegen</button>
+      <button class="mini" id="verwijder" type="button" data-l="verwijder" hidden>Verwijderen</button>
+    </div>
   </header>
-  <div class="summary" id="summary"></div>
-  <section class="lanes" id="lanes" aria-label="Omgevingen"></section>
-  <section class="lower">
-    <div class="panel">
-      <div class="panel-hd"><h2>Releases</h2><span>Klik een release voor de wijzigingen</span></div>
-      <div class="tbl-wrap"><table>
-        <thead><tr><th>Versie</th><th>Commit</th><th>Branch</th><th>Gebouwd</th><th>Doorlopen</th></tr></thead>
-        <tbody id="rels"></tbody>
-      </table></div>
-      <div class="detail" id="detail"></div>
-    </div>
-    <div class="panel">
-      <div class="panel-hd"><h2>Logboek</h2><span id="logcount"></span></div>
-      <ul class="log" id="log"></ul>
-    </div>
-  </section>
+
+  <form id="toevoeg-form" class="toevoeg" hidden>
+    <label for="toevoeg-repo">GitHub-repo</label>
+    <input id="toevoeg-repo" placeholder="eigenaar/repo" autocomplete="off" spellcheck="false">
+    <button class="mini" type="submit">Toevoegen</button>
+    <button class="linkbtn" type="button" data-l="annuleer">Annuleren</button>
+    <span id="toevoeg-fout" class="fout-tekst" role="alert"></span>
+    <span class="hint">Alleen openbare repo's. Omgevingen worden herkend aan de branches development (Test), acceptatie en main (Productie).</span>
+  </form>
+
+  <div id="view-live" class="view" hidden>
+    <div id="live-status"></div>
+    <div class="summary" id="live-summary"></div>
+    <section class="lanes" id="live-lanes" aria-label="Omgevingen"></section>
+    <section class="lower">
+      <div class="panel">
+        <div class="panel-hd"><h2 id="live-commits-titel">Commits</h2><span>Nieuwste eerst</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Versie</th><th>Wijziging</th><th>Auteur</th><th>Datum</th><th>Staat op</th></tr></thead>
+          <tbody id="live-commits"></tbody>
+        </table></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><h2>Workflow-runs</h2><span id="live-runcount"></span></div>
+        <ul class="log" id="live-log"></ul>
+      </div>
+    </section>
+  </div>
+
+  <div id="view-sim" class="view" hidden>
+    <div class="controls" id="controls"></div>
+    <div class="summary" id="summary"></div>
+    <section class="lanes" id="lanes" aria-label="Omgevingen"></section>
+    <section class="lower">
+      <div class="panel">
+        <div class="panel-hd"><h2>Releases</h2><span>Klik een release voor de wijzigingen</span></div>
+        <div class="tbl-wrap"><table>
+          <thead><tr><th>Versie</th><th>Commit</th><th>Branch</th><th>Gebouwd</th><th>Doorlopen</th></tr></thead>
+          <tbody id="rels"></tbody>
+        </table></div>
+        <div class="detail" id="detail"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-hd"><h2>Logboek</h2><span id="logcount"></span></div>
+        <ul class="log" id="log"></ul>
+      </div>
+    </section>
+  </div>
+
   <footer class="voet">{{APP_NAME}} · opslag per omgeving: <code id="sleutel"></code></footer>
 </div>
 <script>{{SCRIPT}}</script>

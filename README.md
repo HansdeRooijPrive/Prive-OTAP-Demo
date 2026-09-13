@@ -5,12 +5,22 @@ Demo-app (privé) op het OTAP-platform, gegenereerd uit
 De CI/CD komt uit [`OTAP-CI`](https://github.com/HansdeRooijPrive/OTAP-CI).
 Doel: de volledige O → T → A → P-keten live laten zien.
 
-De app zelf is de **OTAP-straat**: een gesimuleerde releasestraat waarin je
-releases van Ontwikkeling via Test en Acceptatie naar Productie promoveert.
-Elke poort heeft eigen criteria (tests, regressietest, gebruikersacceptatie,
-change-goedkeuring met vier-ogenprincipe, wijzigingsvenster, release freeze);
-productie rolt blue-green uit en kan worden teruggedraaid. Alle gegevens zijn
-fictief en worden per omgeving apart in `localStorage` bewaard.
+De app zelf is de **OTAP-straat**, een dashboard met een app-kiezer bovenin:
+
+- **Live uit GitHub** — kies een app (standaard: Ventus KM-Declaratie, deze
+  demo, Zeilen in Griekenland, Reizen Schotland) of voeg zelf een openbare repo
+  toe. Het dashboard leest zonder token de branches (`development` = Test,
+  `acceptatie`, `main` = Productie), commits en workflow-runs en toont per
+  omgeving welke versie er live staat, of CI groen is en hoeveel commits klaar
+  staan voor de volgende omgeving. Alleen-lezen; zonder inloggen staat GitHub
+  60 verzoeken per uur toe, daarom wordt de stand 5 minuten bewaard.
+- **Oefenstraat** — een gesimuleerde releasestraat met poortcriteria
+  (regressietest, gebruikersacceptatie, change-goedkeuring met vier-ogenprincipe,
+  wijzigingsvenster, release freeze), blue-green uitrol en terugdraaien. Alle
+  gegevens daarin zijn fictief.
+
+De gekozen app staat in de URL (`#app=eigenaar/repo` of `#app=oefen`) en wordt,
+net als de oefenstraat, per omgeving apart in `localStorage` bewaard.
 
 ## OTAP
 | Branch | Omgeving | URL |
