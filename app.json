@@ -1,4 +1,5 @@
 {
+  "platform": "v2",
   "name": "OTAP Platform Demo",
   "short_name": "OTAP Demo",
   "storage_key": "prive-otap-demo",

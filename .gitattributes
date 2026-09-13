@@ -4,3 +4,6 @@ build.py    text eol=lf
 app.json    text eol=lf
 src/**      text eol=lf
 tests/**    text eol=lf
+
+# Iconen zijn binair: nooit regeleindes vertalen.
+src/icons/*.png binary

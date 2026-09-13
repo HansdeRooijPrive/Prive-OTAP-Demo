@@ -34,10 +34,18 @@ testen op de acceptatie-URL → pas na expliciet akkoord naar `main` (productie)
 
 ## Lokaal (O)
 ```bash
-python build.py            # bouwt index.html (productie)
-python build.py --env=test # testvariant (andere kleur + opslagsleutel)
+python build.py            # bouwt index.html (productie); haalt eenmalig OTAP-CI v2 op in .otap/
+python build.py --env=test # testvariant (andere naam, icoon en opslagsleutel)
+python build.py --check    # platformafspraken + index.html controleren
 pip install -r requirements-test.txt && python -m playwright install chromium && pytest
 ```
 
 `index.html` (productie-build) staat ingecheckt; `CI` bewaakt dat die overeenkomt
-met `src/`.
+met `src/`. De bouwstap komt centraal uit OTAP-CI (`"platform": "v2"` in
+`app.json`); `build.py` is alleen de dunne ingang en pas je niet aan.
+
+## Iconen
+`src/icons/icon.<prod|acc|test>.png` zijn de eigen app-iconen per omgeving: de
+merkkleur uit `app.json` (blauw, oranje, groen) met de letter P, A of T en een
+straat van vier stippen waarin de eigen omgeving groter is. De drie moeten van
+elkaar verschillen (platformafspraak); `.gitattributes` legt ze binair vast.
