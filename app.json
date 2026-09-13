@@ -1,7 +1,7 @@
 {
   "platform": "v2",
-  "name": "OTAP Platform Demo",
-  "short_name": "OTAP Demo",
+  "name": "OTAP Platform Monitoring",
+  "short_name": "OTAP Monitor",
   "storage_key": "prive-otap-demo",
   "theme": {
     "prod": { "merk": "#2563eb", "merk_donker": "#1e40af", "merk_licht": "#3b82f6" },

@@ -5,7 +5,7 @@ const BRANCH = { T: 'development', A: 'acceptatie', P: 'main' };
 const BRANCH_ENV = { development: 'T', acceptatie: 'A', main: 'P' };
 const STANDAARD_APPS = [
   { repo: 'HansdeRooijPrive/Ventus-KM-Declaratie', naam: 'Ventus KM-Declaratie' },
-  { repo: 'HansdeRooijPrive/Prive-OTAP-Demo', naam: 'OTAP Platform Demo (deze app)' },
+  { repo: 'HansdeRooijPrive/Prive-OTAP-Demo', naam: 'OTAP Platform Monitoring (deze app)' },
   { repo: 'HansdeRooijPrive/Prive-Zeilen-Griekenland', naam: 'Zeilen in Griekenland' },
   { repo: 'HansdeRooijPrive/Prive-Reizen-Schotland', naam: 'Reizen Schotland' }
 ];

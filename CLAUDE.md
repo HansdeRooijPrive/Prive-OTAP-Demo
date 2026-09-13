@@ -1,4 +1,4 @@
-# OTAP Platform Demo (Prive-OTAP-Demo)
+# OTAP Platform Monitoring (Prive-OTAP-Demo)
 
 Privé-app on the OTAP platform. CI/CD comes from `HansdeRooijPrive/OTAP-CI@v1`;
 this repo was generated from `Prive-App-Template`. See README.md for URLs.

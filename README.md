@@ -1,11 +1,11 @@
-# Prive-OTAP-Demo — OTAP Platform Demo
+# Prive-OTAP-Demo — OTAP Platform Monitoring
 
 Demo-app (privé) op het OTAP-platform, gegenereerd uit
 [`Prive-App-Template`](https://github.com/HansdeRooijPrive/Prive-App-Template).
 De CI/CD komt uit [`OTAP-CI`](https://github.com/HansdeRooijPrive/OTAP-CI).
 Doel: de volledige O → T → A → P-keten live laten zien.
 
-De app zelf is de **OTAP-straat**, een dashboard met een app-kiezer bovenin:
+De app zelf, **OTAP Platform Monitoring**, is een dashboard met een app-kiezer bovenin:
 
 - **Live uit GitHub** — kies een app (standaard: Ventus KM-Declaratie, deze
   demo, Zeilen in Griekenland, Reizen Schotland) of voeg zelf een openbare repo
