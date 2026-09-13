@@ -9,10 +9,14 @@ const STANDAARD_APPS = [
   { repo: 'HansdeRooijPrive/Prive-Zeilen-Griekenland', naam: 'Zeilen in Griekenland' },
   { repo: 'HansdeRooijPrive/Prive-Reizen-Schotland', naam: 'Reizen Schotland' }
 ];
+const PLATFORM_REPO = 'HansdeRooijPrive/OTAP-CI';
+const PLATFORM_URL = 'https://github.com/' + PLATFORM_REPO;
 const REPO_RE = /^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/;
 const KEUZE_KEY = STORAGE_KEY + '.dashboard';
-const CACHE_KEY = STORAGE_KEY + '.github';
+const CACHE_KEY = STORAGE_KEY + '.github2';          // .github2: runs bevatten nu ook de OTAP-CI-versie
+const PLATFORM_KEY = STORAGE_KEY + '.platform';
 const CACHE_MS = 5 * 60 * 1000;
+const PLATFORM_MS = 30 * 60 * 1000;
 const VERSIE_RE = /\bv\d+(?:\.\d+)+\b/g;
 const UITKOMST = { success: 'geslaagd', failure: 'mislukt', cancelled: 'geannuleerd', timed_out: 'time-out', skipped: 'overgeslagen',
   action_required: 'actie nodig', startup_failure: 'startfout', neutral: 'neutraal', stale: 'verouderd' };
@@ -23,6 +27,7 @@ function leesJson(key, standaard) {
 function schrijfJson(key, v) {
   try { localStorage.setItem(key, JSON.stringify(v)); } catch (e) { /* geen opslag of vol */ }
 }
+try { localStorage.removeItem(STORAGE_KEY + '.github'); } catch (e) { /* oude cache opruimen */ }
 function esc(s) {
   return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; });
 }
@@ -34,6 +39,14 @@ function fmt(iso) {
 function hhmm(ms) { const d = new Date(ms); return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); }
 function sha7(s) { return String(s || '').slice(0, 7); }
 function gelijk(a, b) { return String(a).toLowerCase() === String(b).toLowerCase(); }
+// Vergelijkt versies als "v3.21" en "v2": -1, 0 of 1.
+function vergelijkVersie(a, b) {
+  const x = String(a).replace(/^v/, '').split('.').map(Number), y = String(b).replace(/^v/, '').split('.').map(Number);
+  for (let i = 0; i < Math.max(x.length, y.length); i++) {
+    if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0) ? 1 : -1;
+  }
+  return 0;
+}
 
 /* ---------- keuze van de app ---------- */
 let KEUZE = leesJson(KEUZE_KEY, null);
@@ -61,6 +74,7 @@ function uitHash() {
 
 /* ---------- GitHub ophalen ---------- */
 const LIVE = { repo: null, laden: false, fout: null, data: null, opgehaald: 0, limiet: null };
+const PLATFORM = { data: leesJson(PLATFORM_KEY, null), laden: false };
 let liveVolgnr = 0;
 
 function gh(pad) {
@@ -79,8 +93,15 @@ function slankCommit(c) {
   const cm = c.commit || {}, au = cm.author || cm.committer || {};
   return { sha: c.sha, msg: String(cm.message || '').split('\n')[0], auteur: au.name || (c.author && c.author.login) || '', datum: au.date || null, url: c.html_url };
 }
+// Met welke OTAP-CI-versie draaide deze run? GitHub legt herbruikbare workflows vast in referenced_workflows.
+function otapVanRun(r) {
+  const w = (r.referenced_workflows || []).find(function (x) { return /\/otap-ci\/\.github\/workflows\//i.test(x.path || ''); });
+  if (!w) return null;
+  const versie = w.ref ? w.ref.replace(/^refs\/(tags|heads)\//, '') : (String(w.path).split('@')[1] || '?');
+  return { versie: versie, sha: w.sha || null };
+}
 function slankRun(r) {
-  return { naam: r.name || '', branch: r.head_branch || '', sha: r.head_sha, status: r.status, uitkomst: r.conclusion, datum: r.created_at, url: r.html_url };
+  return { naam: r.name || '', branch: r.head_branch || '', sha: r.head_sha, status: r.status, uitkomst: r.conclusion, datum: r.created_at, url: r.html_url, otap: otapVanRun(r) };
 }
 function foutTekst(e, repo) {
   if (e.netwerk) return 'GitHub is niet bereikbaar. Controleer je internetverbinding en probeer het opnieuw.';
@@ -93,7 +114,34 @@ function foutTekst(e, repo) {
   return 'De gegevens van GitHub hadden een onverwachte vorm.';
 }
 
+// Nieuwste vrijgegeven OTAP-CI-versie = hoogste tag vN; 30 minuten bewaard, gedeeld door alle apps.
+function haalPlatform(forceer) {
+  const d = PLATFORM.data;
+  if (PLATFORM.laden || (!forceer && d && Date.now() - d.t < PLATFORM_MS)) return;
+  PLATFORM.laden = true;
+  gh('/repos/' + PLATFORM_REPO + '/git/matching-refs/tags/v').then(function (refs) {
+    const tags = refs.map(function (r) { return { naam: r.ref.replace('refs/tags/', ''), sha: r.object.sha, type: r.object.type }; })
+      .filter(function (t) { return /^v\d+(\.\d+)*$/.test(t.naam); })
+      .sort(function (a, b) { return vergelijkVersie(b.naam, a.naam); });
+    if (!tags.length) return { t: Date.now(), nieuwste: null };
+    const n = tags[0];
+    if (n.type !== 'tag') return { t: Date.now(), nieuwste: { naam: n.naam, sha: n.sha, commit: n.sha, datum: null } };
+    return gh('/repos/' + PLATFORM_REPO + '/git/tags/' + n.sha).then(function (t) {
+      return { t: Date.now(), nieuwste: { naam: n.naam, sha: n.sha, commit: t.object && t.object.sha, datum: t.tagger && t.tagger.date } };
+    });
+  }).then(function (nieuw) {
+    PLATFORM.data = nieuw;
+    schrijfJson(PLATFORM_KEY, nieuw);
+  }).catch(function (e) {
+    if (window.console) console.warn('Nieuwste OTAP-CI-versie niet opgehaald', e);
+  }).then(function () {
+    PLATFORM.laden = false;
+    renderLive();
+  });
+}
+
 function haalApp(repo, forceer) {
+  haalPlatform(forceer);
   const cache = leesJson(CACHE_KEY, {});
   const c = cache[repo];
   const nr = ++liveVolgnr;
@@ -138,14 +186,7 @@ function versie(c) {
   if (!c) return '—';
   const m = c.msg.match(VERSIE_RE);
   if (!m) return sha7(c.sha);
-  function delen(v) { return v.slice(1).split('.').map(Number); }
-  return m.reduce(function (hoogste, v) {
-    const a = delen(v), b = delen(hoogste);
-    for (let i = 0; i < Math.max(a.length, b.length); i++) {
-      if ((a[i] || 0) !== (b[i] || 0)) return (a[i] || 0) > (b[i] || 0) ? v : hoogste;
-    }
-    return hoogste;
-  });
+  return m.reduce(function (hoogste, v) { return vergelijkVersie(v, hoogste) > 0 ? v : hoogste; });
 }
 function laatstePerWorkflow(runs) {
   const gezien = {}, uit = [];
@@ -184,10 +225,31 @@ function wachtend(bron, doel) {
 }
 function commitsTekst(n) { return n + ' ' + (n === 1 ? 'commit' : 'commits'); }
 
+// Platformversie van een run beoordelen tegen de nieuwste OTAP-CI-versie.
+function platformLabel(otap, heeftRuns) {
+  if (!otap) return heeftRuns ? { cls: 'info', tekst: 'Eigen workflows (geen OTAP-CI)' } : null;
+  const N = PLATFORM.data && PLATFORM.data.nieuwste;
+  const naam = 'OTAP-CI ' + otap.versie;
+  if (!/^v\d+(\.\d+)*$/.test(otap.versie)) return { cls: 'no', tekst: naam + ' (geen vrijgegeven versie)' };
+  if (!N) return { cls: 'info', tekst: naam };
+  const c = vergelijkVersie(otap.versie, N.naam);
+  if (c < 0) return { cls: 'no', tekst: naam + ' · ' + N.naam + ' beschikbaar' };
+  if (c === 0 && otap.sha && N.sha && otap.sha !== N.sha && otap.sha !== N.commit) return { cls: 'no', tekst: naam + ' · oudere stand' };
+  return { cls: 'ok', tekst: naam + ' · nieuwste' };
+}
+
 /* ---------- weergave ---------- */
 function pillL(c, t, bezig) { return '<span class="pill' + (bezig ? ' busy' : '') + '" style="--c:' + c + '">' + t + '</span>'; }
 function extLink(url, tekst, cls) { return '<a class="' + cls + '" href="' + esc(url) + '" target="_blank" rel="noopener">' + tekst + '</a>'; }
 function item(cls, ic, tekst) { return '<li class="' + cls + '"><span class="ic">' + ic + '</span><span class="lbl">' + tekst + '</span></li>'; }
+function chip(lab, otap) {
+  const inhoud = '<span class="chip ' + lab.cls + '">' + esc(lab.tekst) + '</span>';
+  return otap ? extLink(PLATFORM_URL + '/tree/' + encodeURIComponent(otap.versie), inhoud, 'chip-link') : inhoud;
+}
+function platformRij(otap, heeftRuns) {
+  const lab = platformLabel(otap, heeftRuns);
+  return lab ? '<dt>Platform</dt><dd>' + chip(lab, otap) + '</dd>' : '';
+}
 function laneKop(k, sub, pill, cls) {
   return '<article class="lane' + (cls || '') + '" data-env="' + k + '" style="--env:' + envVar(k) + '">' +
     '<div class="lane-head"><div class="glyph" aria-hidden="true">' + k + '</div><div class="lane-title"><h2>' + OMG[k].name + '</h2><div class="host">' + sub + '</div></div>' + pill + '</div>';
@@ -209,11 +271,13 @@ function laneLiveO(M, repo) {
   const bezig = checks.some(function (r) { return r.status !== 'completed'; });
   const fout = checks.some(isFout);
   const pill = bezig ? pillL('var(--env)', 'Checks lopen…', true) : fout ? pillL('var(--bad)', 'CI rood') : checks.length ? pillL('var(--ok)', 'CI groen') : pillL('var(--ink-3)', 'Geen checks');
+  const metOtap = checks.find(function (r) { return r.otap; });
   let h = laneKop('O', 'branch development', pill);
   h += '<div class="lane-body"><div class="ver"><div class="ver-txt">' + esc(versie(head)) + '</div>';
   h += '<div class="ver-meta">' + (head ? '<span class="mono">' + sha7(head.sha) + '</span> · ' + esc(head.auteur) + ' · ' + fmt(head.datum) : 'Geen commits') + '</div></div>';
   if (head) h += '<p class="msg">' + esc(head.msg) + '</p>';
-  h += '<dl class="facts"><dt>Bron</dt><dd>' + extLink('https://github.com/' + repo + '/commits/development', 'Commits op development', 'lnk') + '</dd></dl></div>';
+  h += '<dl class="facts"><dt>Bron</dt><dd>' + extLink('https://github.com/' + repo + '/commits/development', 'Commits op development', 'lnk') + '</dd>' +
+    platformRij(metOtap ? metOtap.otap : null, checks.length > 0) + '</dl></div>';
   h += '<div class="gate"><div class="gate-hd"><span>Poort naar Test</span><em>automatisch bij push</em></div><ul class="checks">';
   h += checks.length ? checks.map(checkItem).join('') : item('info', 'i', 'Geen CI-workflows gevonden');
   if (T.live && head && T.live.sha === head.sha) h += item('ok', '✓', 'Nieuwste commit staat op Test');
@@ -243,6 +307,7 @@ function laneLiveEnv(k, M, repo) {
   }
   h += '<dl class="facts"><dt>Branch</dt><dd><code>' + b + '</code></dd>';
   if (L) h += '<dt>Uitrol</dt><dd>' + extLink(L.url, esc(L.naam), 'lnk') + ' · ' + (L.status !== 'completed' ? 'bezig' : (UITKOMST[L.uitkomst] || esc(L.uitkomst))) + '</dd>';
+  h += platformRij(E.live ? E.live.otap : (L ? L.otap : null), E.deploys.length > 0);
   h += '</dl></div><div class="gate">';
   if (k !== 'P') {
     const nk = k === 'T' ? (M.A ? 'A' : 'P') : 'P', N = M[nk];
@@ -262,6 +327,23 @@ function laneLiveEnv(k, M, repo) {
     h += extLink(url, 'Open de app →', 'btn prod') + extLink('https://github.com/' + repo + '/actions?query=branch%3Amain', 'Uitrolgeschiedenis op GitHub', 'btn ghost');
   }
   return h + '</div></article>';
+}
+
+function samenvattingPlatform(M) {
+  const P = M.P;
+  const otapP = P && P.live ? P.live.otap : null;
+  let s = '';
+  const lab = platformLabel(otapP, !!(P && P.deploys.length));
+  if (lab) s += '<span>Platform in productie: ' + chip(lab, otapP) + '</span>';
+  const afwijkend = ['T', 'A'].filter(function (k) {
+    const o = M[k] && M[k].live ? M[k].live.otap : null;
+    return o && (!otapP || o.versie !== otapP.versie);
+  }).map(function (k) { return OMG[k].name + ' ' + esc(M[k].live.otap.versie); });
+  if (afwijkend.length) s += '<span>Afwijkend: <b>' + afwijkend.join(', ') + '</b></span>';
+  const N = PLATFORM.data && PLATFORM.data.nieuwste;
+  s += '<span>Nieuwste OTAP-CI: ' + (N ? extLink(PLATFORM_URL + '/tree/' + encodeURIComponent(N.naam), '<b class="mono">' + esc(N.naam) + '</b>', 'lnk') +
+    (N.datum ? ' · vrijgegeven ' + fmt(N.datum) : '') : (PLATFORM.laden ? 'wordt opgehaald…' : 'onbekend')) + '</span>';
+  return s;
 }
 
 function renderLive() {
@@ -293,6 +375,7 @@ function renderLive() {
   if (M.T && M[doelK]) s += '<span><b>' + commitsTekst(wachtend(M.T.lijst, M[doelK].lijst)) + '</b> op Test nog niet in ' + OMG[doelK].name + '</span>';
   const rood = ['T', 'A', 'P'].reduce(function (t, k) { return t + (M[k] ? M[k].checks.filter(isFout).length : 0); }, 0);
   s += '<span>CI: <b style="color:var(' + (rood ? '--bad' : '--ok') + ')">' + (rood ? rood + ' rood' : 'groen') + '</b></span>';
+  s += samenvattingPlatform(M);
   s += '<span>Bijgewerkt ' + hhmm(LIVE.opgehaald) + (LIVE.limiet ? ' · GitHub-limiet ' + LIVE.limiet.rest + '/' + LIVE.limiet.max : '') + '</span>';
   document.getElementById('live-summary').innerHTML = s;
 
@@ -322,7 +405,8 @@ function renderLive() {
     const lv = r.status !== 'completed' ? 'info' : isFout(r) ? (r.uitkomst === 'cancelled' ? 'warn' : 'bad') : 'ok';
     const uit = r.status !== 'completed' ? 'bezig' : (UITKOMST[r.uitkomst] || esc(r.uitkomst));
     return '<li class="' + lv + '"><time>' + fmt(r.datum) + '</time><span class="e" style="--env:' + (k ? envVar(k) : 'var(--ink-3)') + '" title="' + esc(r.branch) + '">' +
-      (k || '·') + '</span><span class="txt">' + extLink(r.url, esc(r.naam), 'lnk') + ' · ' + uit + ' · <span class="mono">' + esc(r.branch) + '</span></span></li>';
+      (k || '·') + '</span><span class="txt">' + extLink(r.url, esc(r.naam), 'lnk') + ' · ' + uit + ' · <span class="mono">' + esc(r.branch) + '</span>' +
+      (r.otap ? ' · <span class="mono">OTAP-CI ' + esc(r.otap.versie) + '</span>' : '') + '</span></li>';
   }).join('');
 }
 

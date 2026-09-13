@@ -4,6 +4,8 @@ import json
 import pytest
 
 REPO = "HansdeRooijPrive/Ventus-KM-Declaratie"
+PLATFORM = "HansdeRooijPrive/OTAP-CI"
+TAG_V1, TAG_V2 = "b1" * 20, "b2" * 20          # sha's van de (geannoteerde) tag-objecten
 HDRS = {
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Expose-Headers": "X-RateLimit-Remaining, X-RateLimit-Limit, X-RateLimit-Reset",
@@ -18,9 +20,13 @@ def _commit(sha, msg, datum):
             "commit": {"message": msg, "author": {"name": "Hans", "date": datum}}}
 
 
-def _run(i, naam, branch, sha, datum, conclusion="success", status="completed"):
-    return {"id": i, "name": naam, "head_branch": branch, "head_sha": sha, "status": status,
-            "conclusion": conclusion, "created_at": datum, "html_url": "https://github.com/%s/actions/runs/%d" % (REPO, i)}
+def _otap(workflow, versie, sha):
+    return [{"path": "%s/.github/workflows/%s@%s" % (PLATFORM, workflow, versie), "sha": sha, "ref": "refs/tags/" + versie}]
+
+
+def _run(i, naam, branch, sha, datum, conclusion="success", status="completed", ref=None):
+    return {"id": i, "name": naam, "head_branch": branch, "head_sha": sha, "status": status, "conclusion": conclusion,
+            "created_at": datum, "html_url": "https://github.com/%s/actions/runs/%d" % (REPO, i), "referenced_workflows": ref or []}
 
 
 DEV = [
@@ -30,16 +36,26 @@ DEV = [
 ]
 MAIN = [_commit("m1" * 20, "Release naar productie: v3.9 + v3.20 + v3.21", "2026-09-12T09:42:00Z"), DEV[1], DEV[2]]
 RUNS = [
-    _run(4, "Deploy to Test", "development", DEV[0]["sha"], "2026-09-13T08:01:00Z"),
-    _run(3, "Tests", "development", DEV[0]["sha"], "2026-09-13T08:01:00Z", conclusion="failure"),
+    # Test is uitgerold met de nieuwste OTAP-CI (v2); de checks op development draaiden nog op v1;
+    # productie gebruikt eigen workflows (geen OTAP-CI).
+    _run(4, "Deploy (OTAP)", "development", DEV[0]["sha"], "2026-09-13T08:01:00Z", ref=_otap("deploy.yml", "v2", TAG_V2)),
+    _run(3, "Tests", "development", DEV[0]["sha"], "2026-09-13T08:01:00Z", conclusion="failure", ref=_otap("tests.yml", "v1", TAG_V1)),
     _run(2, "Deploy to Production", "main", MAIN[0]["sha"], "2026-09-12T09:43:00Z"),
     _run(1, "Tests", "main", MAIN[0]["sha"], "2026-09-12T09:43:00Z"),
 ]
+TAGS = [{"ref": "refs/tags/v1", "object": {"sha": TAG_V1, "type": "tag"}},
+        {"ref": "refs/tags/v2", "object": {"sha": TAG_V2, "type": "tag"}}]
+TAG_V2_OBJECT = {"sha": TAG_V2, "tagger": {"date": "2026-09-13T11:00:00Z"}, "object": {"sha": "c2" * 20, "type": "commit"},
+                 "message": "OTAP-CI v2: centrale bouwstap"}
 
 
 def _nep_github(route):
     url = route.request.url
-    if "/repos/%s/branches" % REPO in url:
+    if "/repos/%s/git/matching-refs/tags/v" % PLATFORM in url:
+        body = TAGS
+    elif "/repos/%s/git/tags/%s" % (PLATFORM, TAG_V2) in url:
+        body = TAG_V2_OBJECT
+    elif "/repos/%s/branches" % REPO in url:
         body = [{"name": "development"}, {"name": "main"}]
     elif "/repos/%s/actions/runs" % REPO in url:
         body = {"total_count": len(RUNS), "workflow_runs": RUNS}
@@ -66,6 +82,10 @@ def _lane(page, k):
     return page.locator('#live-lanes .lane[data-env="%s"]' % k)
 
 
+def _wacht_op_tekst(page, selector, tekst):
+    page.wait_for_function("([s, t]) => (document.querySelector(s) || {}).innerText?.includes(t)", arg=[selector, tekst])
+
+
 def test_live_straat_toont_stand_uit_github(live):
     live.wait_for_selector('#live-lanes .lane[data-env="P"] .ver-txt')
     assert _lane(live, "T").locator(".ver-txt").inner_text() == "v3.22"
@@ -74,6 +94,17 @@ def test_live_straat_toont_stand_uit_github(live):
     assert "CI rood" in _lane(live, "O").inner_text()                 # Tests faalden op development
     assert "1 commit klaar voor Productie" in _lane(live, "T").inner_text()
     assert live.locator("#live-commits tr").count() == 3
+
+
+def test_platformversie_per_omgeving_en_nieuwste_otap_ci(live):
+    _wacht_op_tekst(live, "#live-summary", "Nieuwste OTAP-CI: v2")
+    assert "OTAP-CI v2 · nieuwste" in _lane(live, "T").inner_text()   # uitgerold met de nieuwste versie
+    assert "OTAP-CI v1 · v2 beschikbaar" in _lane(live, "O").inner_text()
+    assert "Eigen workflows" in _lane(live, "P").inner_text()         # productie niet via OTAP-CI
+    summary = live.locator("#live-summary").inner_text()
+    assert "Platform in productie: Eigen workflows" in summary
+    assert "Afwijkend: Test v2" in summary
+    assert "OTAP-CI v2" in live.locator("#live-log").inner_text()
 
 
 def test_kiezer_wisselt_naar_oefenstraat_en_onthoudt_keuze(live):

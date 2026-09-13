@@ -12,8 +12,12 @@ De app zelf, **OTAP Platform Monitoring**, is een dashboard met een app-kiezer b
   toe. Het dashboard leest zonder token de branches (`development` = Test,
   `acceptatie`, `main` = Productie), commits en workflow-runs en toont per
   omgeving welke versie er live staat, of CI groen is en hoeveel commits klaar
-  staan voor de volgende omgeving. Alleen-lezen; zonder inloggen staat GitHub
-  60 verzoeken per uur toe, daarom wordt de stand 5 minuten bewaard.
+  staan voor de volgende omgeving. Per omgeving zie je ook met welke
+  OTAP-CI-versie er is uitgerold (uit `referenced_workflows` van de run:
+  "nieuwste", "v2 beschikbaar" of "eigen workflows"), en bovenin de nieuwste
+  vrijgegeven OTAP-CI-versie (hoogste tag `vN`). Alleen-lezen; zonder inloggen
+  staat GitHub 60 verzoeken per uur toe, daarom wordt de stand 5 minuten (en de
+  platformversie 30 minuten) bewaard.
 - **Oefenstraat** — een gesimuleerde releasestraat met poortcriteria
   (regressietest, gebruikersacceptatie, change-goedkeuring met vier-ogenprincipe,
   wijzigingsvenster, release freeze), blue-green uitrol en terugdraaien. Alle
